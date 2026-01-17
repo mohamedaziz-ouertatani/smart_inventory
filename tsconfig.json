@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "CommonJS",              // Node runtime expects CommonJS
+    "module": "CommonJS",
     "moduleResolution": "Node",
-    "outDir": "./dist",                // compiled JS goes here
-    "rootDir": "./src",                // source files live in src/
+    "outDir": "dist",
+    "rootDir": "./",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
