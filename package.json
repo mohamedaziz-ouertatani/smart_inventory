@@ -1,0 +1,25 @@
+{
+  "name": "smart-inventory-api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+  "fastify": "^5.7.1",
+  "@fastify/jwt": "^8.0.0",
+  "@fastify/sensible": "^6.0.4",
+  "dotenv": "^16.4.5",
+  "fastify-plugin": "^4.5.1",
+  "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/pg": "^8.16.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.2"
+  }
+}
