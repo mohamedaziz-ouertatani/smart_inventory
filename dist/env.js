@@ -6,15 +6,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.config = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
+/**
+ * Utility to parse boolean environment variables.
+ * Accepts "1", "true", "yes", "y" (case-insensitive).
+ */
 function bool(v, def) {
     if (v === undefined)
         return def;
     return ["1", "true", "yes", "y"].includes(v.toLowerCase());
 }
 exports.config = {
+    // Server
     port: Number(process.env.PORT ?? 3000),
     host: process.env.HOST ?? "0.0.0.0",
     nodeEnv: process.env.NODE_ENV ?? "development",
+    // Database
     pg: {
         host: process.env.PGHOST ?? "localhost",
         port: Number(process.env.PGPORT ?? 5432),
@@ -25,11 +31,13 @@ exports.config = {
             ? { rejectUnauthorized: false }
             : undefined,
     },
+    // JWT
     jwt: {
         secret: process.env.JWT_SECRET ?? "change-me",
         issuer: process.env.JWT_ISSUER ?? "smart-inventory",
         expiresIn: process.env.JWT_EXPIRES_IN ?? "12h",
     },
+    // Static credentials for demo users
     creds: {
         viewer: {
             username: process.env.VIEWER_USERNAME ?? "viewer",
