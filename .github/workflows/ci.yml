@@ -80,7 +80,13 @@ jobs:
           PGPASSWORD: postgres
         run: |
           echo "Verifying database schemas..."
-          PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dn" | grep -E "(raw|curated|ops)" && echo "✓ Schemas exist"
+          SCHEMA_COUNT=$(PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" -tAc "SELECT count(*) FROM information_schema.schemata WHERE schema_name IN ('raw', 'curated', 'ops');")
+          if [ "$SCHEMA_COUNT" -eq 3 ]; then
+            echo "✓ All required schemas exist (raw, curated, ops)"
+          else
+            echo "✗ Expected 3 schemas, found $SCHEMA_COUNT"
+            exit 1
+          fi
 
       - name: Build and start API container
         run: |

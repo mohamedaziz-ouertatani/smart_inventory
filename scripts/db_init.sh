@@ -42,8 +42,7 @@ echo "Applying migrations from: ${MIGRATIONS_DIR}"
 for migration in "${MIGRATIONS_DIR}"/*.sql; do
   if [ -f "$migration" ]; then
     echo "Applying: $(basename "$migration")"
-    PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" -f "$migration"
-    if [ $? -eq 0 ]; then
+    if PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" -f "$migration"; then
       echo "✓ $(basename "$migration") applied successfully"
     else
       echo "✗ Failed to apply $(basename "$migration")"
