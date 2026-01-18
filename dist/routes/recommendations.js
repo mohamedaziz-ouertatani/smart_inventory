@@ -22,9 +22,9 @@ async function registerRecommendationRoutes(app) {
                 properties: {
                     sku_id: { type: "string" },
                     location_id: { type: "string" },
-                    start_week: { type: "string" }, // YYYY-MM-DD
+                    start_week: { type: "string" },
                     end_week: { type: "string" },
-                    run_id: { type: "string" }, // UUID
+                    run_id: { type: "string" },
                     latest_only: { type: "boolean", default: true },
                     limit: { type: "integer", minimum: 1, maximum: 1000, default: 100 },
                     offset: { type: "integer", minimum: 0, default: 0 },
