@@ -1,11 +1,17 @@
 "use client";
 import Link from "next/link";
+import { useAuth } from "./AuthProvider";
+import LogoutButton from "./LogoutButton";
 
 export default function NavBar() {
+  const { token } = useAuth();
+
   return (
-    <nav style={{ padding: "1rem", borderBottom: "1px solid #ccc" }}>
-      <Link href="/">Home</Link> | <Link href="/login">Login</Link> |{" "}
-      <Link href="/forecasts">Forecasts</Link>
+    <nav style={{ display: "flex", gap: 20, padding: 12 }}>
+      <Link href="/">Home</Link>
+      {token && <Link href="/forecasts">Forecasts</Link>}
+      {token && <Link href="/metabase-dashboard">Dashboards</Link>}
+      {!token ? <Link href="/login">Login</Link> : <LogoutButton />}
     </nav>
   );
 }

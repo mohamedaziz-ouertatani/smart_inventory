@@ -2,6 +2,8 @@
 
 Smart Inventory Management System with demand forecasting and inventory optimization.
 
+---
+
 ## Features
 
 - **API**: Fastify-based REST API with JWT authentication
@@ -9,6 +11,8 @@ Smart Inventory Management System with demand forecasting and inventory optimiza
 - **Jobs**: Python-based data ingestion, preprocessing, forecasting (Seasonal Naive, ETS, ARIMA/SARIMA), and policy computation
 - **MLflow**: Experiment tracking and model registry for ML forecasting models
 - **CI/CD**: Automated testing and validation on every push and pull request
+
+---
 
 ## Quick Start
 
@@ -21,85 +25,95 @@ Smart Inventory Management System with demand forecasting and inventory optimiza
 ### Local Development
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/mohamedaziz-ouertatani/smart_inventory.git
    cd smart_inventory
    ```
 
 2. **Configure environment variables**
+
    ```bash
    cp .env.example .env
    # Edit .env with your local settings
    ```
 
 3. **Start the stack**
+
    ```bash
    # Start PostgreSQL (migrations auto-apply on fresh volumes)
    docker compose up -d postgres
-   
+
    # Start API
    docker compose up -d api
-   
+
    # Start MLflow tracking server
    docker compose up -d mlflow
-   
+
    # Check health
    curl http://localhost:3000/health
    curl http://localhost:5000/health
    ```
 
 4. **Run data jobs**
+
    ```bash
    # Install Python dependencies
    pip install -r jobs/requirements.txt
-   
+
    # Run ingestion (adjust parameters for your needs)
    python -m jobs.ingest --skus 100 --locations 3 --weeks 52
-   
+
    # Run preprocessing
    python -m jobs.preprocess
-   
+
    # Train baseline model (seasonal naive)
    python -m jobs.train_baseline --horizon 4
-   
+
    # Train ML models (ETS, ARIMA with MLflow tracking)
    python -m jobs.train_ml --horizon 4
-   
+
    # Compute policies
    python -m jobs.compute_policy
    ```
 
 5. **Access MLflow UI**
+
    ```bash
-   # Open in browser
+   # Open in browser (or manually navigate)
    open http://localhost:5000
-   
    # View experiment runs, metrics, and artifacts
    ```
 
 6. **Test API endpoints**
+
    ```bash
    # Get JWT token
    TOKEN=$(curl -s -X POST http://localhost:3000/auth/token \
      -H "Content-Type: application/json" \
      -d '{"username":"viewer","password":"viewer123"}' | jq -r '.token')
-   
+
    # Test authenticated endpoints
    curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/auth/me
    curl -H "Authorization: Bearer $TOKEN" "http://localhost:3000/forecasts?latest_only=true&limit=10"
    curl -H "Authorization: Bearer $TOKEN" "http://localhost:3000/recommendations?latest_only=true&limit=10"
    ```
 
-### Database Migrations
+---
+
+## Database Migrations
 
 Migrations are automatically applied when using Docker Compose with fresh volumes.
 
 For manual migration application (useful in CI or custom environments):
+
 ```bash
 ./scripts/db_init.sh
 ```
 
-The script uses environment variables for connection parameters (PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD).
+The script uses environment variables for connection parameters (`PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`).
+
+---
 
 ## CI/CD
 
@@ -116,6 +130,8 @@ The CI pipeline typically completes in 3-5 minutes.
 ### CI Environment
 
 CI uses ephemeral credentials defined in `.env.ci`. These are safe for testing and should **never** be used in production.
+
+---
 
 ## Project Structure
 
@@ -139,6 +155,8 @@ CI uses ephemeral credentials defined in `.env.ci`. These are safe for testing a
 ├── Dockerfile.mlflow    # MLflow tracking server image
 └── .env.example         # Environment variables template
 ```
+
+---
 
 ## MLflow Tracking
 
@@ -170,6 +188,8 @@ open http://localhost:5000
 # - Track model selections per SKU-location
 ```
 
+---
+
 ## Development
 
 ### API Development
@@ -185,6 +205,8 @@ npm start     # Run production build
 
 1. Create a new SQL file in `db/migrations/` with sequential naming (e.g., `08_new_feature.sql`)
 2. Migrations are automatically applied on fresh volumes or via `scripts/db_init.sh`
+
+---
 
 ## Runbook: After Merge / Fresh Deployment
 
@@ -215,8 +237,9 @@ docker compose ps
 ```
 
 Expected output should show:
+
 - `smartinv-postgres` - healthy
-- `smartinv-api` - healthy  
+- `smartinv-api` - healthy
 - `smartinv-mlflow` - healthy
 
 ### 3. Ingest and Preprocess Data
@@ -295,6 +318,7 @@ curl http://localhost:5000/health
 ```
 
 In the MLflow UI:
+
 1. Select experiment "smart-inventory"
 2. View runs for each SKU-location
 3. Compare metrics (WAPE, sMAPE, bias) across models
@@ -322,19 +346,24 @@ curl -s -H "Authorization: Bearer $TOKEN" \
   "http://localhost:3000/forecasts?sku_id=SKU001&location_id=WH001" | jq '.'
 ```
 
-### Troubleshooting
+---
+
+## Troubleshooting
 
 **MLflow database doesn't exist:**
+
 ```bash
 docker exec -e PGPASSWORD=0000 smartinv-postgres psql -U postgres -c "CREATE DATABASE mlflow;"
 docker compose restart mlflow
 ```
 
 **MLflow shows "Invalid Host header":**
+
 - Ensure `MLFLOW_ALLOW_MULTIPLE_HOSTNAMES=true` in docker-compose.yml
 - Restart MLflow: `docker compose restart mlflow`
 
 **Migrations not applied:**
+
 ```bash
 # Manually apply migrations
 docker exec -e PGPASSWORD=0000 smartinv-postgres \
@@ -343,6 +372,7 @@ docker exec -e PGPASSWORD=0000 smartinv-postgres \
 ```
 
 **Jobs can't connect to MLflow:**
+
 - Verify `MLFLOW_TRACKING_URI=http://mlflow:5000` in jobs environment
 - Check `docker compose logs mlflow` for errors
 - Ensure mlflow service is healthy: `docker compose ps mlflow`
@@ -395,6 +425,42 @@ docker exec -e PGPASSWORD=0000 smartinv-postgres \
 **Tips:**
 - Metabase auto-discovers your schema, so you can use its GUI to build tables, trends, and charts quickly—or just run the raw SQL above.
 - Scheduler will retry jobs every week. Logs let you debug silent failures.
+
+---
+
+## Frontend (Next.js)
+
+1. **Setup environment:**
+   ```bash
+   cd frontend
+   cp .env.local.example .env.local
+   npm install
+   ```
+
+2. **Override API URL if needed**  
+   Edit `.env.local` and set `NEXT_PUBLIC_API_URL=http://localhost:3000`  
+   (Use your actual backend API URL if deploying.)
+
+3. **Run the app:**
+   ```bash
+   npm run dev
+   # or with yarn:
+   yarn dev
+   ```
+
+4. **Visit:**  
+   [http://localhost:3000](http://localhost:3000)
+
+- **Default API URL**: `http://localhost:3000`
+- **Override via `.env.local` as needed**
+
+**Features implemented:**
+- JWT login flow and protected API endpoints
+- Logout and session persistence
+- Live dashboard embedding via Metabase
+- Custom 404 page for invalid routes
+- Error handling and loading states
+- All development config in `.env.local` (never commit real secrets!)
 
 ---
 
