@@ -183,8 +183,169 @@ npm start     # Run production build
 
 ### Adding New Migrations
 
-1. Create a new SQL file in `db/migrations/` with sequential naming (e.g., `05_new_feature.sql`)
+1. Create a new SQL file in `db/migrations/` with sequential naming (e.g., `08_new_feature.sql`)
 2. Migrations are automatically applied on fresh volumes or via `scripts/db_init.sh`
+
+## Runbook: After Merge / Fresh Deployment
+
+This section provides step-by-step commands to deploy and run the complete system from scratch.
+
+### 1. Ensure MLflow Database Exists
+
+The MLflow tracking server requires a dedicated database. Create it if it doesn't exist:
+
+```bash
+# If using Docker Compose (with postgres service running):
+docker exec -e PGPASSWORD=0000 smartinv-postgres psql -U postgres -c "CREATE DATABASE mlflow;"
+
+# If running locally:
+PGPASSWORD=0000 psql -h localhost -p 5432 -U postgres -c "CREATE DATABASE mlflow;"
+```
+
+**Note**: The command will fail if the database already exists, which is safe to ignore.
+
+### 2. Rebuild and Start Services
+
+```bash
+# Build and start all services (Postgres, API, MLflow)
+docker compose up -d --build
+
+# Verify all services are healthy
+docker compose ps
+```
+
+Expected output should show:
+- `smartinv-postgres` - healthy
+- `smartinv-api` - healthy  
+- `smartinv-mlflow` - healthy
+
+### 3. Ingest and Preprocess Data
+
+```bash
+# Ingest sample data (adjust parameters for production)
+# For production: --skus 1000 --locations 3 --weeks 156
+# For testing: --skus 20 --locations 2 --weeks 26
+docker compose -f docker-compose.yml -f docker-compose.jobs.override.yml run --rm jobs \
+  python -m jobs.ingest --skus 1000 --locations 3 --weeks 156
+
+# Preprocess raw data into curated tables
+docker compose -f docker-compose.yml -f docker-compose.jobs.override.yml run --rm jobs \
+  python -m jobs.preprocess
+```
+
+### 4. Train Models and Compute Policies
+
+```bash
+# Train ML models with MLflow tracking (ETS, ARIMA, Seasonal Naive)
+# This will:
+# - Perform rolling backtests over 26 weeks
+# - Select best model per SKU-location by WAPE
+# - Write forecasts to ops.forecast
+# - Write accuracy metrics to ops.metrics_accuracy
+# - Log runs, params, metrics, and plots to MLflow
+docker compose -f docker-compose.yml -f docker-compose.jobs.override.yml run --rm jobs \
+  python -m jobs.train_ml --horizon 4
+
+# Compute replenishment policies based on forecasts
+docker compose -f docker-compose.yml -f docker-compose.jobs.override.yml run --rm jobs \
+  python -m jobs.compute_policy
+```
+
+### 5. Verify Results
+
+#### Check Database
+
+```bash
+# Connect to database
+docker exec -e PGPASSWORD=0000 -it smartinv-postgres psql -U postgres -d smart_inventory
+
+# Run verification queries:
+
+# 1. Check forecast distribution by model
+SELECT model_name, model_stage, COUNT(*) as forecast_count
+FROM ops.forecast
+GROUP BY model_name, model_stage
+ORDER BY forecast_count DESC;
+
+# 2. Check average accuracy metrics
+SELECT
+    model_name,
+    COUNT(*) as metrics_count,
+    AVG(wape) as avg_wape,
+    AVG(smape) as avg_smape,
+    AVG(bias) as avg_bias
+FROM ops.metrics_accuracy
+GROUP BY model_name;
+
+# 3. Check batch run history
+SELECT job_type, status, started_at, finished_at, notes
+FROM ops.batch_run
+ORDER BY started_at DESC
+LIMIT 10;
+```
+
+#### Check MLflow UI
+
+```bash
+# Open MLflow in browser
+open http://localhost:5000
+
+# Or use curl to verify API
+curl http://localhost:5000/health
+```
+
+In the MLflow UI:
+1. Select experiment "smart-inventory"
+2. View runs for each SKU-location
+3. Compare metrics (WAPE, sMAPE, bias) across models
+4. Download backtest plots from artifacts
+5. Inspect model parameters and selections
+
+#### Test API Endpoints
+
+```bash
+# Get JWT token
+TOKEN=$(curl -s -X POST http://localhost:3000/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"username":"viewer","password":"viewer123"}' | jq -r '.token')
+
+# Fetch latest forecasts
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3000/forecasts?latest_only=true&limit=10" | jq '.'
+
+# Fetch recommendations
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3000/recommendations?latest_only=true&limit=10" | jq '.'
+
+# Check specific SKU-location forecast
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:3000/forecasts?sku_id=SKU001&location_id=WH001" | jq '.'
+```
+
+### Troubleshooting
+
+**MLflow database doesn't exist:**
+```bash
+docker exec -e PGPASSWORD=0000 smartinv-postgres psql -U postgres -c "CREATE DATABASE mlflow;"
+docker compose restart mlflow
+```
+
+**MLflow shows "Invalid Host header":**
+- Ensure `MLFLOW_ALLOW_MULTIPLE_HOSTNAMES=true` in docker-compose.yml
+- Restart MLflow: `docker compose restart mlflow`
+
+**Migrations not applied:**
+```bash
+# Manually apply migrations
+docker exec -e PGPASSWORD=0000 smartinv-postgres \
+  psql -U postgres -d smart_inventory -f /docker-entrypoint-initdb.d/01_create_schemas.sql
+# Repeat for 02-07...
+```
+
+**Jobs can't connect to MLflow:**
+- Verify `MLFLOW_TRACKING_URI=http://mlflow:5000` in jobs environment
+- Check `docker compose logs mlflow` for errors
+- Ensure mlflow service is healthy: `docker compose ps mlflow`
 
 ## License
 
