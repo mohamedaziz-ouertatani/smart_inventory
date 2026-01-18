@@ -73,6 +73,39 @@ jobs:
             sleep 2
           done
 
+      - name: Setup MLflow database
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGDATABASE: smart_inventory
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: |
+          echo "Creating MLflow database..."
+          PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" -c "CREATE DATABASE mlflow;" || echo "MLflow database may already exist"
+
+      - name: Build and start MLflow service
+        run: |
+          docker compose build mlflow
+          docker compose up -d mlflow
+
+      - name: Wait for MLflow health
+        run: |
+          echo "Waiting for MLflow to be healthy..."
+          for i in {1..30}; do
+            if curl -f http://localhost:5000/health > /dev/null 2>&1; then
+              echo "MLflow is healthy!"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "ERROR: MLflow did not become healthy"
+              docker compose logs mlflow
+              exit 1
+            fi
+            echo "Waiting... (attempt $i/30)"
+            sleep 2
+          done
+
       - name: Verify database migrations
         env:
           PGHOST: localhost
@@ -144,6 +177,19 @@ jobs:
         run: |
           echo "Running train_baseline job..."
           python -m jobs.train_baseline --horizon 2
+
+      - name: Run ML training job with MLflow
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGDATABASE: smart_inventory
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          MLFLOW_TRACKING_URI: http://localhost:5000
+          MLFLOW_EXPERIMENT_NAME: smart-inventory
+        run: |
+          echo "Running train_ml job with MLflow tracking..."
+          python -m jobs.train_ml --horizon 2
 
       - name: Run policy computation job
         env:
@@ -238,6 +284,8 @@ jobs:
           docker compose logs postgres
           echo "=== API logs ==="
           docker compose logs api
+          echo "=== MLflow logs ==="
+          docker compose logs mlflow
 
       - name: Cleanup
         if: always()
