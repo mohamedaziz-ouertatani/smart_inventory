@@ -1,0 +1,18 @@
+services:
+  jobs:
+    build:
+      context: .
+      dockerfile: jobs/Dockerfile
+    container_name: smartinv-jobs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+    working_dir: /app
+    # Remove entrypoint so `docker compose run jobs ...` runs your command
+    # The image CMD is `sleep infinity`, which will be overridden by `run`
+    # Do not set `entrypoint` here
