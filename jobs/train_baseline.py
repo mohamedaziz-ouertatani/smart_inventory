@@ -1,14 +1,10 @@
-# Baseline training and batch inference (seasonal naive + moving average fallback)
 from datetime import date, timedelta
 import argparse
 import uuid
-import math
 from typing import List, Tuple, Dict
-
 import numpy as np
 import psycopg2
 import psycopg2.extras
-
 from jobs.utils.db import get_conn
 
 H_DEFAULT = 4
@@ -45,8 +41,6 @@ def seasonal_naive_forecast(ts: List[Tuple[date,int]], target_week: date) -> flo
     if ref_week in values:
         return float(values[ref_week])
     prior_weeks = [w for (w,_) in ts if w < target_week]
-    if not prior_weeks:
-        return 0.0
     prior_weeks.sort()
     recent = prior_weeks[-FALLBACK_WINDOW:] if len(prior_weeks) >= FALLBACK_WINDOW else prior_weeks
     avg = np.mean([values[w] for w in recent]) if recent else 0.0
@@ -56,8 +50,7 @@ def compute_backtest(ts: List[Tuple[date,int]], latest_week: date) -> Tuple[List
     if not ts:
         return [], 0.0
     values = {w:u for (w,u) in ts}
-    weeks = [w for (w,_) in ts]
-    weeks.sort()
+    weeks = sorted([w for (w,_) in ts])
     per_week = []
     for w in reversed(weeks):
         if w >= latest_week - timedelta(weeks=BACKTEST_WEEKS):

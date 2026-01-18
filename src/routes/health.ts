@@ -1,10 +1,10 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance } from "fastify";
 
 export async function registerHealthRoutes(app: FastifyInstance) {
-  app.get('/health', async () => {
+  app.get("/health", async () => {
     return {
-      status: 'ok',
-      time: new Date().toISOString()
+      status: "ok",
+      time: new Date().toISOString(),
     };
   });
 }

@@ -15,5 +15,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy job sources
 COPY jobs ./jobs
 
-# Default command; will be overridden by `docker compose run jobs <command>`
+# Default command; run tasks via `docker compose run jobs ...`
 CMD ["sleep", "infinity"]

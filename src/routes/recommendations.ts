@@ -5,8 +5,8 @@ type RecommendationRow = {
   location_id: string;
   as_of_week_start: string;
   lead_time_weeks: number;
-  service_level: string; // numeric
-  rop_units: string; // numeric
+  service_level: string;
+  rop_units: string;
   on_hand: number;
   on_order: number;
   order_qty: number;
@@ -38,9 +38,9 @@ export async function registerRecommendationRoutes(app: FastifyInstance) {
           properties: {
             sku_id: { type: "string" },
             location_id: { type: "string" },
-            start_week: { type: "string" }, // YYYY-MM-DD
+            start_week: { type: "string" },
             end_week: { type: "string" },
-            run_id: { type: "string" }, // UUID
+            run_id: { type: "string" },
             latest_only: { type: "boolean", default: true },
             limit: { type: "integer", minimum: 1, maximum: 1000, default: 100 },
             offset: { type: "integer", minimum: 0, default: 0 },

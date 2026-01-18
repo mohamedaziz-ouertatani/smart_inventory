@@ -8,7 +8,7 @@ declare module "fastify" {
   }
 }
 
-async function ping(pool: Pool, attempts = 10, delayMs = 1000): Promise<void> {
+async function ping(pool: Pool, attempts = 20, delayMs = 1000): Promise<void> {
   let lastErr: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
@@ -32,13 +32,12 @@ export default fp(async (fastify) => {
     ssl: config.pg.ssl,
   });
 
-  // retry ping to handle container start timing
   try {
-    await ping(pool, 20, 1000); // ~20s max
+    await ping(pool, 20, 1000);
     fastify.log.info("Connected to PostgreSQL");
   } catch (err) {
     fastify.log.error({ err }, "Failed to connect to PostgreSQL");
-    throw err; // fail fast with clear logs
+    throw err;
   }
 
   fastify.decorate("db", pool);

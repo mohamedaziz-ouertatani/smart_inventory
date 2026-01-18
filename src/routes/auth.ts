@@ -2,7 +2,6 @@ import { FastifyInstance } from "fastify";
 import { config } from "../env.js";
 
 export async function registerAuthRoutes(app: FastifyInstance) {
-  // Minimal token issuance for local development and testing
   app.post(
     "/auth/token",
     {
@@ -56,7 +55,6 @@ export async function registerAuthRoutes(app: FastifyInstance) {
     },
   );
 
-  // Simple decode endpoint to inspect token (optional, helpful in dev)
   app.get(
     "/auth/me",
     {

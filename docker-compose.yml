@@ -3,19 +3,15 @@ services:
     image: postgres:15-alpine
     container_name: smartinv-postgres
     environment:
-      POSTGRES_DB: ${PGDATABASE:-smart_inventory}
-      POSTGRES_USER: ${PGUSER:-postgres}
-      POSTGRES_PASSWORD: ${PGPASSWORD:-0000}
+      POSTGRES_DB: ${PGDATABASE}
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-smart_inventory} || exit 1",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER} -d ${PGDATABASE} || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -33,14 +29,12 @@ services:
     env_file:
       - .env
     environment:
-      # Override DB host to use the docker service name
       PGHOST: postgres
       PGPORT: 5432
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: ${PORT:-3000}
       HOST: 0.0.0.0
-      # Ensure JWT is set; .env values are used if present
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: ${JWT_SECRET:-change-me}
       JWT_ISSUER: ${JWT_ISSUER:-smart-inventory}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-12h}
     ports:

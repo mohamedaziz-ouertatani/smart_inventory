@@ -25,9 +25,13 @@ export default fp(async (app: FastifyInstance) => {
   // Register sensible to get httpErrors
   await app.register(sensible);
 
-  // Register JWT plugin (only secret here)
+  // Register JWT plugin
   await app.register(jwt, {
     secret: config.jwt.secret,
+    sign: {
+      issuer: config.jwt.issuer,
+      expiresIn: config.jwt.expiresIn,
+    },
   });
 
   // Decorators
@@ -45,7 +49,6 @@ export default fp(async (app: FastifyInstance) => {
   app.decorate("requireRoles", (roles: Array<"viewer" | "operator">) => {
     return async (req: FastifyRequest, reply: FastifyReply) => {
       await app.authenticate(req, reply);
-
       const role = req.user?.role;
       if (!role || !roles.includes(role)) {
         throw app.httpErrors.forbidden("Forbidden");

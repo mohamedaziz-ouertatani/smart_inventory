@@ -1,12 +1,9 @@
-# Compute replenishment recommendations from forecasts
 import uuid
-from datetime import date, timedelta
+from datetime import date
 import math
 from typing import Dict, Tuple, Optional
-
 import psycopg2
 import psycopg2.extras
-
 from jobs.utils.db import get_conn
 
 Z_DEFAULTS = {0.90: 1.2816, 0.95: 1.6449, 0.99: 2.3263}

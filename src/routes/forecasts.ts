@@ -3,8 +3,8 @@ import { FastifyInstance } from "fastify";
 type ForecastRow = {
   sku_id: string;
   location_id: string;
-  horizon_week_start: string; // date
-  forecast_units: string; // numeric from pg as string
+  horizon_week_start: string;
+  forecast_units: string;
   baseline_units: string | null;
   residual_std: string | null;
   model_name: string;
@@ -34,9 +34,9 @@ export async function registerForecastRoutes(app: FastifyInstance) {
           properties: {
             sku_id: { type: "string" },
             location_id: { type: "string" },
-            start_week: { type: "string" }, // YYYY-MM-DD (ISO Monday)
-            end_week: { type: "string" }, // YYYY-MM-DD (ISO Monday)
-            run_id: { type: "string" }, // UUID
+            start_week: { type: "string" },
+            end_week: { type: "string" },
+            run_id: { type: "string" },
             latest_only: { type: "boolean", default: true },
             model_name: { type: "string" },
             model_stage: {
