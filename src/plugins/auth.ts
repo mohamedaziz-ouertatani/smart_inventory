@@ -29,7 +29,7 @@ export default fp(async (app: FastifyInstance) => {
   await app.register(jwt, {
     secret: config.jwt.secret,
     sign: {
-      issuer: config.jwt.issuer,
+      iss: config.jwt.issuer,
       expiresIn: config.jwt.expiresIn,
     },
   });

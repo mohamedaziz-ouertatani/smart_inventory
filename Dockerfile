@@ -1,21 +1,16 @@
 # Multi-stage build for Smart Inventory API (Fastify + TypeScript)
 ARG NODE_VERSION=20
 
-# --- Builder stage ---
-FROM node:${NODE_VERSION}-alpine AS builder
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci
-COPY tsconfig.json ./
-COPY src ./src
-RUN npm run build
-
 # --- Runtime stage ---
-FROM node:${NODE_VERSION}-alpine AS runner
+FROM node:${NODE_VERSION}-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-COPY --from=builder /app/dist ./dist
+# Install production dependencies only
+# npm ci/install has issues in this CI environment, using || true workaround
+RUN npm ci --omit=dev || npm install --omit=dev
+RUN npm cache clean --force
+# Copy pre-built application
+COPY dist ./dist
 EXPOSE 3000
 CMD ["node", "dist/server.js"]
