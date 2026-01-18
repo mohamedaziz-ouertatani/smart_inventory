@@ -1,27 +1,34 @@
 "use client";
-import { RequireAuth } from "../../components/RequireAuth";
+import { useEffect, useState } from "react";
+import { RequireAuth } from "../../components/RequireAuth"; // Path based on your structure
 
 export default function MetabaseDashboardPage() {
-  const dashboardUrl =
-    process.env.NEXT_PUBLIC_METABASE_DASHBOARD_URL ||
-    "http://localhost:3001/public/dashboard/abcd1234-5678-etc"; // fallback
+  const [dashboardUrl, setDashboardUrl] = useState("");
+
+  useEffect(() => {
+    fetch("/api/metabase-embed-url")
+      .then((res) => res.json())
+      .then((data) => setDashboardUrl(data.url));
+  }, []);
 
   return (
     <RequireAuth>
       <div style={{ width: "100%", minHeight: "900px" }}>
         <h1>Analytics Dashboard</h1>
-        <iframe
-          src={dashboardUrl}
-          title="Metabase Analytics"
-          style={{
-            border: "none",
-            width: "100%",
-            height: "900px",
-            marginTop: "24px",
-            background: "white",
-          }}
-          allowFullScreen
-        />
+        {dashboardUrl && (
+          <iframe
+            src={dashboardUrl}
+            title="Metabase Analytics"
+            style={{
+              border: "none",
+              width: "100%",
+              height: "900px",
+              marginTop: "24px",
+              background: "white",
+            }}
+            allowFullScreen
+          />
+        )}
       </div>
     </RequireAuth>
   );

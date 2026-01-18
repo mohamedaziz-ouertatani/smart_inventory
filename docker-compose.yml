@@ -39,7 +39,7 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-smart-inventory}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-12h}
     ports:
-      - "3000:3000"
+      - "4000:3000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]

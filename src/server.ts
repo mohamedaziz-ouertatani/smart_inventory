@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import cors from "@fastify/cors"; // <--- ADD THIS LINE
 import { config } from "./env";
 import dbPlugin from "./plugins/db";
 import authPlugin from "./plugins/auth";
@@ -11,6 +12,15 @@ async function buildServer() {
   const app = Fastify({
     logger: { level: config.nodeEnv === "development" ? "debug" : "info" },
   });
+
+  // --- ADD THIS BLOCK RIGHT AFTER CREATING app ---
+  await app.register(cors, {
+    origin: ["http://localhost:3000", "http://localhost:3002"], // list all frontend URLs you use
+    methods: ["GET", "POST", "OPTIONS"],
+    // allowedHeaders: ["Content-Type", "Authorization"], // optional, needed in some setups
+    credentials: true,
+  });
+  // ------------------------------------------------
 
   await app.register(dbPlugin);
   await app.register(authPlugin);
