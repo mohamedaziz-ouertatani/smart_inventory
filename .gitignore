@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-store
+
+# Build outputs
+dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.egg-info/
+
+# Temporary files
+tmp/
+.tmp/
