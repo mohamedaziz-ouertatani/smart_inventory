@@ -22,9 +22,9 @@ async function registerForecastRoutes(app) {
                 properties: {
                     sku_id: { type: "string" },
                     location_id: { type: "string" },
-                    start_week: { type: "string" }, // YYYY-MM-DD (ISO Monday)
-                    end_week: { type: "string" }, // YYYY-MM-DD (ISO Monday)
-                    run_id: { type: "string" }, // UUID
+                    start_week: { type: "string" },
+                    end_week: { type: "string" },
+                    run_id: { type: "string" },
                     latest_only: { type: "boolean", default: true },
                     model_name: { type: "string" },
                     model_stage: {

@@ -10,9 +10,13 @@ const env_js_1 = require("../env.js");
 exports.default = (0, fastify_plugin_1.default)(async (app) => {
     // Register sensible to get httpErrors
     await app.register(sensible_1.default);
-    // Register JWT plugin (only secret here)
+    // Register JWT plugin
     await app.register(jwt_1.default, {
         secret: env_js_1.config.jwt.secret,
+        sign: {
+            iss: env_js_1.config.jwt.issuer,
+            expiresIn: env_js_1.config.jwt.expiresIn,
+        },
     });
     // Decorators
     app.decorate("authenticate", async (req, _reply) => {

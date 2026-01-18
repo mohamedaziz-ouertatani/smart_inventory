@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerAuthRoutes = registerAuthRoutes;
 const env_js_1 = require("../env.js");
 async function registerAuthRoutes(app) {
-    // Minimal token issuance for local development and testing
     app.post("/auth/token", {
         schema: {
             body: {
@@ -41,7 +40,6 @@ async function registerAuthRoutes(app) {
             role,
         };
     });
-    // Simple decode endpoint to inspect token (optional, helpful in dev)
     app.get("/auth/me", {
         preHandler: app.requireRoles(["viewer", "operator"]),
     }, async (req) => {
