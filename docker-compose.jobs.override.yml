@@ -12,4 +12,5 @@ services:
     environment:
       PGHOST: postgres
       PGPORT: 5432
+      MLFLOW_TRACKING_URI: http://mlflow:5000
     working_dir: /app
