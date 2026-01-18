@@ -1,17 +1,13 @@
--- Migration: Add unique constraint to ops.forecast to prevent duplicate entries within a run
--- Ensures data integrity by preventing multiple forecast rows for the same SKU-location-week combination in a single run.
--- Note: The PRIMARY KEY on (run_id, sku_id, location_id, horizon_week_start) already ensures uniqueness,
--- but this migration adds an explicit named constraint for clarity and documentation purposes.
--- Safe to run multiple times due to conditional logic.
+-- Migration: Document uniqueness constraint on ops.forecast
+-- This migration serves as documentation for the uniqueness constraint on ops.forecast.
+-- The PRIMARY KEY on (run_id, sku_id, location_id, horizon_week_start) already ensures uniqueness.
+-- No actual schema changes are made by this migration - it only verifies the constraint exists.
+-- Safe to run multiple times.
 
 BEGIN;
 
+-- Verify that the PRIMARY KEY constraint exists
 -- The PRIMARY KEY constraint already ensures uniqueness on these columns
--- This constraint would be redundant, but we add it as an alias for explicit documentation
--- However, PostgreSQL doesn't allow duplicate constraints on the same columns
--- So we skip this if the PRIMARY KEY already exists (which it does from 04_ops_tables.sql)
-
--- Instead, we simply verify the PRIMARY KEY constraint exists
 DO $$
 BEGIN
     IF EXISTS (

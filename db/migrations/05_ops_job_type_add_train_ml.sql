@@ -5,13 +5,14 @@ BEGIN;
 -- Drop existing CHECK constraint if present
 ALTER TABLE ops.batch_run DROP CONSTRAINT IF EXISTS batch_run_job_type_check;
 -- Recreate CHECK constraint including the new 'train_ml' value
+-- Preserves all existing job types and adds train_ml
 ALTER TABLE ops.batch_run
 ADD CONSTRAINT batch_run_job_type_check CHECK (
         job_type IN (
-            'ingest',
-            'preprocess',
+            'train',
             'batch_inference',
             'compute_policy',
+            'monitor',
             'train_ml'
         )
     );
