@@ -1,6 +1,6 @@
 import fp from "fastify-plugin";
 import { Pool } from "pg";
-import { config } from "../env.js";
+import { config } from "../env";
 
 declare module "fastify" {
   interface FastifyInstance {

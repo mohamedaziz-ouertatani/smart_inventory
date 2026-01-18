@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { config } from "../env.js";
+import { config } from "../env";
 
 export async function registerAuthRoutes(app: FastifyInstance) {
   app.post(

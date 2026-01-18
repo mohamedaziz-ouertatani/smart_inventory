@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import jwt from "@fastify/jwt";
 import sensible from "@fastify/sensible";
-import { config } from "../env.js";
+import { config } from "../env";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 // Augment @fastify/jwt types so request.user has role
@@ -29,7 +29,7 @@ export default fp(async (app: FastifyInstance) => {
   await app.register(jwt, {
     secret: config.jwt.secret,
     sign: {
-      issuer: config.jwt.issuer,
+      iss: config.jwt.issuer,
       expiresIn: config.jwt.expiresIn,
     },
   });

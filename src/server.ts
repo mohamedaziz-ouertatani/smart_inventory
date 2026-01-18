@@ -1,11 +1,11 @@
 import Fastify from "fastify";
-import { config } from "./env.js";
-import dbPlugin from "./plugins/db.js";
-import authPlugin from "./plugins/auth.js";
-import { registerHealthRoutes } from "./routes/health.js";
-import { registerAuthRoutes } from "./routes/auth.js";
-import { registerForecastRoutes } from "./routes/forecasts.js";
-import { registerRecommendationRoutes } from "./routes/recommendations.js";
+import { config } from "./env";
+import dbPlugin from "./plugins/db";
+import authPlugin from "./plugins/auth";
+import { registerHealthRoutes } from "./routes/health";
+import { registerAuthRoutes } from "./routes/auth";
+import { registerForecastRoutes } from "./routes/forecasts";
+import { registerRecommendationRoutes } from "./routes/recommendations";
 
 async function buildServer() {
   const app = Fastify({
