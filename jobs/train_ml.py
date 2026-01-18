@@ -27,8 +27,10 @@ H_DEFAULT = 4
 BACKTEST_WEEKS = 26
 FALLBACK_WINDOW = 8
 MIN_HISTORY = 52  # Minimum weeks of history for ETS/ARIMA
+SARIMA_MAX_ITER = 50  # Maximum iterations for SARIMA fitting
 
-warnings.filterwarnings('ignore')  # Suppress statsmodels warnings
+# Suppress specific statsmodels convergence warnings
+warnings.filterwarnings('ignore', category=Warning, module='statsmodels')
 
 
 def fetch_latest_week(conn) -> date:
@@ -104,7 +106,7 @@ def fit_sarima(series: pd.Series, seasonal_periods: int = 52) -> Optional[SARIMA
             enforce_stationarity=False,
             enforce_invertibility=False
         )
-        fitted = model.fit(disp=False, maxiter=50)
+        fitted = model.fit(disp=False, maxiter=SARIMA_MAX_ITER)
         return fitted
     except Exception:
         return None
@@ -273,7 +275,7 @@ def generate_forecast_horizon_seasonal_naive(
             for h in range(1, horizon+1)]
 
 
-def plot_backtest_results(per_week: List[Tuple[date, float, float, float]], title: str) -> str:
+def plot_backtest_results(per_week: List[Tuple[date, float, float, float]], title: str) -> Optional[str]:
     """Create a plot of actual vs forecast for backtest period."""
     if not per_week:
         return None
@@ -313,7 +315,7 @@ def write_batch_run_start(conn, job_type: str) -> uuid.UUID:
     return run_id
 
 
-def write_batch_run_finish(conn, run_id: uuid.UUID, status: str = 'succeeded', notes: str | None = None):
+def write_batch_run_finish(conn, run_id: uuid.UUID, status: str = 'succeeded', notes: Optional[str] = None):
     """Finish a batch run."""
     with conn.cursor() as cur:
         cur.execute("""
