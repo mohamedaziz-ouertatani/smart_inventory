@@ -45,38 +45,45 @@ jobs:
         run: |
           pip install -r jobs/requirements.txt
 
-      - name: Start PostgreSQL
-        run: |
-          docker compose up -d postgres
-          sleep 5
-
-      - name: Apply database migrations
-        env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGDATABASE: smart_inventory
-          PGUSER: postgres
-          PGPASSWORD: postgres
-        run: |
-          ./scripts/db_init.sh
-
-      - name: Build and start API container
-        env:
-          PGHOST: localhost
-          PGPORT: 5432
-          PGDATABASE: smart_inventory
-          PGUSER: postgres
-          PGPASSWORD: postgres
-          JWT_SECRET: ci-test-secret-do-not-use-in-production-12345678901234567890123456789012
-          JWT_ISSUER: smart-inventory
-          JWT_EXPIRES_IN: 12h
-          VIEWER_USERNAME: viewer
-          VIEWER_PASSWORD: viewer123
-          OPERATOR_USERNAME: operator
-          OPERATOR_PASSWORD: operator123
+      - name: Setup CI environment
         run: |
           # Copy CI environment variables
           cp .env.ci .env
+
+      - name: Start PostgreSQL
+        run: |
+          docker compose up -d postgres
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if docker compose ps postgres | grep -q "healthy"; then
+              echo "PostgreSQL is healthy!"
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "ERROR: PostgreSQL did not become healthy"
+              docker compose logs postgres
+              exit 1
+            fi
+            echo "Waiting... (attempt $i/30)"
+            sleep 2
+          done
+
+      - name: Verify database migrations
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGDATABASE: smart_inventory
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: |
+          echo "Verifying database schemas..."
+          PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" -d "${PGDATABASE}" -c "\dn" | grep -E "(raw|curated|ops)" && echo "✓ Schemas exist"
+
+      - name: Build and start API container
+        run: |
           docker compose build api
           docker compose up -d api
 
