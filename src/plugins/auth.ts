@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import jwt from "@fastify/jwt";
 import sensible from "@fastify/sensible";
-import { config } from "../env.js";
+import { config } from "../env";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 // Augment @fastify/jwt types so request.user has role
