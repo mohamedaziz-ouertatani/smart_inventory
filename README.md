@@ -347,6 +347,57 @@ docker exec -e PGPASSWORD=0000 smartinv-postgres \
 - Check `docker compose logs mlflow` for errors
 - Ensure mlflow service is healthy: `docker compose ps mlflow`
 
+---
+
+## Automated Scheduling and Dashboards
+
+**Enable Scheduler:**
+- `docker compose up -d --build scheduler`
+  - *Starts the scheduler container. It will run the full pipeline (ingestion, preprocessing, forecasting, policy computation) every Sunday at 04:00 UTC.*
+
+**Disable Scheduler:**
+- `docker compose stop scheduler` (temporarily stops)
+- `docker compose rm scheduler` (removes the container)
+
+**View Scheduler Logs:**
+- `docker compose logs -f scheduler`
+  - *Shows real-time details about when each job runs and its output.*
+
+**Enable Metabase (Dashboards):**
+- `docker compose up -d metabase`
+  - *Brings up Metabase for data visualizations and custom dashboards*
+- Open your browser to [http://localhost:3001](http://localhost:3001)
+- Connect to the same Postgres DB as the rest of the stack (host: postgres, db: smart_inventory, credentials from `.env`)
+
+**Sample SQL for Dashboards (paste in Metabase SQL editor):**
+
+- **Forecasts (last 12 weeks):**
+  ```sql
+  SELECT sku_id, location_id, horizon_week_start, forecast_units, model_name
+  FROM ops.forecast
+  WHERE horizon_week_start > NOW() - INTERVAL '12 weeks'
+  ORDER BY sku_id, location_id, horizon_week_start;
+  ```
+- **Accuracy by model:**
+  ```sql
+  SELECT model_name, AVG(wape) as avg_wape, AVG(smape) as avg_smape
+  FROM ops.metrics_accuracy
+  GROUP BY model_name
+  ORDER BY avg_wape;
+  ```
+- **Replenishment recommendations (latest only):**
+  ```sql
+  SELECT *
+  FROM ops.replenishment_recommendation
+  WHERE as_of_week_start = (SELECT MAX(as_of_week_start) FROM ops.replenishment_recommendation);
+  ```
+
+**Tips:**
+- Metabase auto-discovers your schema, so you can use its GUI to build tables, trends, and charts quickly—or just run the raw SQL above.
+- Scheduler will retry jobs every week. Logs let you debug silent failures.
+
+---
+
 ## License
 
 [Add your license here]
