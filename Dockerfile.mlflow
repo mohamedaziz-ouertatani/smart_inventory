@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install MLflow and database adapter
 RUN pip install --no-cache-dir \
-    mlflow==2.9.2 \
+    mlflow==3.5.0 \
     psycopg2-binary==2.9.9
 
 # Create artifact directory
