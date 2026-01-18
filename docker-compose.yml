@@ -60,7 +60,9 @@ services:
     environment:
       PGHOST: postgres
       PGPORT: 5432
+      PGUSER: ${PGUSER}
       PGPASSWORD: ${PGPASSWORD}
+      MLFLOW_ALLOW_MULTIPLE_HOSTNAMES: "true"
     command: >
       mlflow server
       --host 0.0.0.0
@@ -73,9 +75,14 @@ services:
       - mlartifacts:/mlartifacts
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
+      # Use Python to probe MLflow root; curl isn't installed in python:3.11-slim
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request,sys; urllib.request.urlopen(''http://localhost:5000/''); sys.exit(0)" || exit 1',
+        ]
       interval: 10s
-      timeout: 3s
+      timeout: 5s
       retries: 10
 
 volumes:

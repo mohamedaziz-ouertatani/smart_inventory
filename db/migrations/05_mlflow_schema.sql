@@ -1,9 +1,18 @@
--- MLflow database schema
--- Create separate database for MLflow tracking server
--- Note: This file creates the mlflow database if running in an environment where
--- the script has sufficient privileges. In Docker, the MLflow server will create
--- its own tables automatically when using the backend-store-uri.
-
--- For PostgreSQL, we create a separate database for MLflow
--- This ensures isolation from the smart_inventory operational data
-CREATE DATABASE mlflow;
+-- Migration: Add 'train_ml' to allowed job_type values in ops.batch_run
+-- Ensures ops.batch_run accepts the new ML training job type.
+-- Safe to run multiple times due to IF EXISTS on drop.
+BEGIN;
+-- Drop existing CHECK constraint if present
+ALTER TABLE ops.batch_run DROP CONSTRAINT IF EXISTS batch_run_job_type_check;
+-- Recreate CHECK constraint including the new 'train_ml' value
+ALTER TABLE ops.batch_run
+ADD CONSTRAINT batch_run_job_type_check CHECK (
+        job_type IN (
+            'ingest',
+            'preprocess',
+            'batch_inference',
+            'compute_policy',
+            'train_ml'
+        )
+    );
+COMMIT;
